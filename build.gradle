@@ -1,0 +1,58 @@
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
+    id 'maven-publish'
+}
+
+repositories {
+    maven { url "https://reposilite.appleptr16.com/appleptr16" }
+    mavenCentral()
+}
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
+project.group groupValue
+project.version versionValue
+publishing {
+    repositories {
+        maven {
+            name 'appleptr16Repo'
+            url 'https://reposilite.appleptr16.com/appleptr16'
+            credentials(PasswordCredentials)
+        }
+    }
+    publications {
+        shadow(MavenPublication) { publication ->
+            {
+                publication.artifactId(project.name.toLowerCase())
+                project.shadow.component(publication)
+            }
+        }
+    }
+}
+task publishToAppleptr16 {
+    dependsOn(shadowJar, publishAllPublicationsToAppleptr16RepoRepository)
+}
+configurations {
+    all {
+        resolutionStrategy.cacheDynamicVersionsFor 1, 'seconds'
+        resolutionStrategy.cacheChangingModulesFor 1, 'seconds'
+    }
+}
+
+dependencies {
+    compileOnly 'com.google.code.gson:gson:2.10'
+    compileOnly 'net.dv8tion:JDA:5.0.0-beta.1'
+}
+
+shadowJar {
+    outputs.upToDateWhen {
+        false
+    }
+    classifier ''
+    group project.group
+    version project.version
+}
