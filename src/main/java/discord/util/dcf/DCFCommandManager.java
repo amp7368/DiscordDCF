@@ -1,17 +1,20 @@
 package discord.util.dcf;
 
+import discord.util.dcf.slash.DCFAbstractCommand;
+import discord.util.dcf.slash.DCFSlashCommand;
+import discord.util.dcf.slash.DCFSlashSubCommand;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import discord.util.dcf.slash.DCFAbstractCommand;
-import discord.util.dcf.slash.DCFSlashCommand;
-import discord.util.dcf.slash.DCFSlashSubCommand;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.Command.Subcommand;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
+import org.jetbrains.annotations.NotNull;
 
-public class DCFCommandManager {
+public class DCFCommandManager extends ListenerAdapter {
 
     private final List<DCFSlashCommand> baseCommands = new ArrayList<>();
     private final Map<String, DCFAbstractCommand> nameToCommand = new HashMap<>();
@@ -20,11 +23,20 @@ public class DCFCommandManager {
 
     public DCFCommandManager(DCF dcf) {
         this.dcf = dcf;
+        dcf.jda().addEventListener(this);
+    }
+
+    @Override
+    public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
+        DCFAbstractCommand command = this.getCommand(event.getFullCommandName());
+        if (command == null) return;
+        command.onCommand(event);
     }
 
     public void addCommand(DCFSlashCommand... commands) {
         synchronized (this.nameToCommand) {
             for (DCFSlashCommand command : commands) {
+                command.init(this.dcf);
                 String commandName = command.getFullData().getName();
                 this.nameToCommand.put(commandName, command);
                 this.baseCommands.add(command);

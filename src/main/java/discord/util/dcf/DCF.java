@@ -6,12 +6,12 @@ public class DCF {
 
     private final JDA jda;
     private DCFCommandManager commands;
-    private DCFListener listener;
+    private DCFGuiManager guis;
 
     public DCF(JDA jda) {
         this.jda = jda;
         this.commands = new DCFCommandManager(this);
-        this.listener = new DCFListener(this);
+        this.guis = new DCFGuiManager(this);
     }
 
     public JDA jda() {
@@ -22,4 +22,7 @@ public class DCF {
         return commands;
     }
 
+    public DCFGuiManager guis() {
+        return this.guis;
+    }
 }

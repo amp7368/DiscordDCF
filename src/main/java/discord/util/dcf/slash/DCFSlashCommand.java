@@ -4,7 +4,7 @@ import java.util.Collections;
 import java.util.List;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 
-public abstract class DCFSlashCommand extends DCFAbstractCommand{
+public abstract class DCFSlashCommand extends DCFAbstractCommand {
 
     public abstract SlashCommandData getData();
 
