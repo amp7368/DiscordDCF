@@ -36,6 +36,16 @@ public class DCFGui implements IDCFGui {
         return this.subPages.isEmpty() ? pageMap.get(page) : subPages.get(0);
     }
 
+    @Override
+    public int getPageNum() {
+        return page;
+    }
+
+    @Override
+    public int getPageSize() {
+        return pageMap.size();
+    }
+
     public void send() {
         createFirstMessage.create(getPage().makeMessage()).queue((hook) -> {
             this.hook = hook;

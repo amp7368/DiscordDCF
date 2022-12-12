@@ -41,6 +41,7 @@ public class DCFCommandManager extends ListenerAdapter {
                 this.nameToCommand.put(commandName, command);
                 this.baseCommands.add(command);
                 for (DCFSlashSubCommand subCommand : command.getSubCommands()) {
+                    subCommand.init(this.dcf);
                     String subCommandName = commandName + " " + subCommand.getData().getName();
                     this.nameToCommand.put(subCommandName, subCommand);
                 }
