@@ -1,30 +1,28 @@
 package discord.util.dcf;
 
-import discord.util.dcf.gui.base.gui.IDCFGui;
+import discord.util.dcf.gui.base.GuiEventHandler;
 import discord.util.dcf.util.TimeMillis;
 import java.util.HashMap;
 import java.util.Iterator;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
-import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
-public class DCFGuiManager extends ListenerAdapter {
+public class DCFGuiManager {
 
-    private final HashMap<Long, IDCFGui> guis = new HashMap<>();
+    private final HashMap<Long, GuiEventHandler> guis = new HashMap<>();
     private final DCF dcf;
     private long nextTrimTime = 0;
 
     public DCFGuiManager(DCF dcf) {
         this.dcf = dcf;
-        this.dcf.jda().addEventListener(this);
     }
 
     private void trim() {
         if (System.currentTimeMillis() < nextTrimTime) return;
         nextTrimTime = System.currentTimeMillis() + TimeMillis.minToMillis(1);
         synchronized (guis) {
-            Iterator<IDCFGui> iterator = guis.values().iterator();
+            Iterator<GuiEventHandler> iterator = guis.values().iterator();
             while (iterator.hasNext()) {
-                IDCFGui gui = iterator.next();
+                GuiEventHandler gui = iterator.next();
                 if (gui.shouldRemove()) {
                     iterator.remove();
                     gui.remove();
@@ -33,7 +31,7 @@ public class DCFGuiManager extends ListenerAdapter {
         }
     }
 
-    public void addGui(IDCFGui gui) {
+    public void addGui(GuiEventHandler gui) {
         synchronized (guis) {
             guis.put(gui.getId(), gui);
         }
@@ -45,9 +43,8 @@ public class DCFGuiManager extends ListenerAdapter {
         }
     }
 
-    @Override
     public void onButtonInteraction(ButtonInteractionEvent event) {
-        IDCFGui gui;
+        GuiEventHandler gui;
         synchronized (guis) {
             gui = guis.get(event.getMessageIdLong());
         }

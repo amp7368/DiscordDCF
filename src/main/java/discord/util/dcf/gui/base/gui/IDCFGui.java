@@ -7,17 +7,16 @@ import net.dv8tion.jda.api.utils.messages.MessageEditData;
 
 public interface IDCFGui extends GuiEventHandler, IMessageBuilder {
 
-    long getId();
-
-    boolean shouldRemove();
-
     void editMessage();
-
-    void remove();
 
     void editMessage(MessageEditData data);
 
     void editMessage(IMessageEditCallback edit);
+
+    void pageNext();
+
+    void pagePrev();
+    void page(int page);
 
     int getPageNum();
 

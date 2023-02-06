@@ -8,13 +8,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.Command.Subcommand;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 import org.jetbrains.annotations.NotNull;
 
-public class DCFCommandManager extends ListenerAdapter {
+public class DCFCommandManager {
 
     private final List<DCFSlashCommand> baseCommands = new ArrayList<>();
     private final Map<String, DCFAbstractCommand> nameToCommand = new HashMap<>();
@@ -23,10 +22,8 @@ public class DCFCommandManager extends ListenerAdapter {
 
     public DCFCommandManager(DCF dcf) {
         this.dcf = dcf;
-        dcf.jda().addEventListener(this);
     }
 
-    @Override
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
         DCFAbstractCommand command = this.getCommand(event.getFullCommandName());
         if (command == null) return;

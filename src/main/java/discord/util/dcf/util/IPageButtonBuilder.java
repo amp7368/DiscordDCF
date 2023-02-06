@@ -1,18 +1,27 @@
 package discord.util.dcf.util;
 
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 
 public interface IPageButtonBuilder {
 
+    default Button btnFirst() {
+        boolean isEnabled = getPageNum() > 0;
+        return Button.secondary("first", "First").withDisabled(!isEnabled);
+    }
+
     default Button btnNext() {
-        boolean isLastPage = getPageNum() + 1 < getPageSize();
-        return Button.of(isLastPage ? ButtonStyle.PRIMARY : ButtonStyle.SECONDARY, "next", "Next");
+        boolean isEnabled = getPageNum() + 1 < getPageSize();
+        return Button.primary("next", "Next").withDisabled(!isEnabled);
     }
 
     default Button btnPrev() {
-        boolean hastPrevPage = getPageNum() > 0;
-        return Button.of(hastPrevPage ? ButtonStyle.PRIMARY : ButtonStyle.SECONDARY, "prev", "Prev");
+        boolean isEnabled = getPageNum() > 0;
+        return Button.secondary("prev", "Prev").withDisabled(!isEnabled);
+    }
+
+    default Button btnLast() {
+        boolean isEnabled = getPageNum() + 1 < getPageSize();
+        return Button.primary("Last", "Last").withDisabled(!isEnabled);
     }
 
     int getPageNum();

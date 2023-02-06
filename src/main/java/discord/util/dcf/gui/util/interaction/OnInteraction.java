@@ -1,4 +1,4 @@
-package discord.util.dcf.gui.base.page;
+package discord.util.dcf.gui.util.interaction;
 
 public interface OnInteraction<Consumed> {
 

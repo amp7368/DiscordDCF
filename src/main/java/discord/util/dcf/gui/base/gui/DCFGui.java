@@ -1,7 +1,7 @@
 package discord.util.dcf.gui.base.gui;
 
 import discord.util.dcf.DCF;
-import discord.util.dcf.gui.base.GuiMakeFirstMessage;
+import discord.util.dcf.gui.base.GuiReplyFirstMessage;
 import discord.util.dcf.gui.base.page.IDCFGuiPage;
 import discord.util.dcf.util.TimeMillis;
 import java.util.ArrayList;
@@ -15,7 +15,7 @@ import net.dv8tion.jda.api.utils.messages.MessageEditData;
 public class DCFGui implements IDCFGui {
 
     protected final DCF dcf;
-    private final GuiMakeFirstMessage createFirstMessage;
+    private final GuiReplyFirstMessage createFirstMessage;
 
     protected InteractionHook hook;
 
@@ -27,13 +27,32 @@ public class DCFGui implements IDCFGui {
     private long messageId;
 
 
-    public DCFGui(DCF dcf, GuiMakeFirstMessage createFirstMessage) {
+    public DCFGui(DCF dcf, GuiReplyFirstMessage createFirstMessage) {
         this.dcf = dcf;
         this.createFirstMessage = createFirstMessage;
     }
 
     public IDCFGuiPage<?> getPage() {
         return this.subPages.isEmpty() ? pageMap.get(page) : subPages.get(0);
+    }
+
+    @Override
+    public void pageNext() {
+        this.page = this.verifyPage(this.page + 1);
+    }
+
+    @Override
+    public void pagePrev() {
+        this.page = this.verifyPage(this.page - 1);
+    }
+
+    @Override
+    public void page(int pageNum) {
+        this.page = this.verifyPage(pageNum);
+    }
+
+    private int verifyPage(int i) {
+        return Math.max(0, Math.min(this.pageMap.size() - 1, i));
     }
 
     @Override
@@ -83,7 +102,7 @@ public class DCFGui implements IDCFGui {
     }
 
     public void onButtonClick(ButtonInteractionEvent event) {
-        getPage().onButtonClick(event);
+        getPage().onButtonInteraction(event);
         resetLastUpdatedTimer();
     }
 

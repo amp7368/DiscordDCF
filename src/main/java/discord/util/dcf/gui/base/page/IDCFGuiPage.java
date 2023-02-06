@@ -1,14 +1,14 @@
 package discord.util.dcf.gui.base.page;
 
-import discord.util.dcf.gui.base.GuiEventHandler;
 import discord.util.dcf.gui.base.gui.IDCFGui;
+import discord.util.dcf.gui.util.interaction.IHasInteractionMap;
 import discord.util.dcf.util.IMessageBuilder;
 import discord.util.dcf.util.IPageButtonBuilder;
 import net.dv8tion.jda.api.interactions.callbacks.IMessageEditCallback;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import net.dv8tion.jda.api.utils.messages.MessageEditData;
 
-public interface IDCFGuiPage<Parent extends IDCFGui> extends GuiEventHandler, IMessageBuilder, IPageButtonBuilder {
+public interface IDCFGuiPage<Parent extends IDCFGui> extends IMessageBuilder, IPageButtonBuilder, IHasInteractionMap {
 
     MessageCreateData makeMessage();
 
@@ -36,6 +36,7 @@ public interface IDCFGuiPage<Parent extends IDCFGui> extends GuiEventHandler, IM
     default int getPageNum() {
         return getParent().getPageNum();
     }
+
     default int getPageSize() {
         return getParent().getPageSize();
     }
