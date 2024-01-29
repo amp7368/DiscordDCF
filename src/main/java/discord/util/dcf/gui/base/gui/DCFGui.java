@@ -15,12 +15,10 @@ import net.dv8tion.jda.api.utils.messages.MessageEditData;
 public class DCFGui implements IDCFGui {
 
     protected final DCF dcf;
-    private final GuiReplyFirstMessage createFirstMessage;
-
-    protected InteractionHook hook;
-
     protected final List<IDCFGuiPage<?>> pageMap = new ArrayList<>();
     protected final List<IDCFGuiPage<?>> subPages = new ArrayList<>();
+    private final GuiReplyFirstMessage createFirstMessage;
+    protected InteractionHook hook;
     protected int page = 0;
 
     private long lastUpdated = System.currentTimeMillis();
@@ -33,7 +31,7 @@ public class DCFGui implements IDCFGui {
     }
 
     public IDCFGuiPage<?> getPage() {
-        return this.subPages.isEmpty() ? pageMap.get(page) : subPages.get(0);
+        return this.subPages.isEmpty() ? pageMap.get(page) : subPages.get(subPages.size() - 1);
     }
 
     @Override
@@ -76,12 +74,24 @@ public class DCFGui implements IDCFGui {
     }
 
     public DCFGui addPage(IDCFGuiPage<?>... pageGuis) {
-        pageMap.addAll(Arrays.asList(pageGuis));
+        pageMap.addAll(List.of(pageGuis));
+        Arrays.stream(pageGuis).forEach(page -> page.setParent(this));
         return this;
     }
 
     public DCFGui addSubPage(IDCFGuiPage<?>... subPages) {
-        this.subPages.addAll(Arrays.asList(subPages));
+        this.subPages.addAll(List.of(subPages));
+        Arrays.stream(subPages).forEach(page -> page.setParent(this));
+        return this;
+    }
+
+    public DCFGui clearSubPages() {
+        this.subPages.clear();
+        return this;
+    }
+
+    public DCFGui popSubPage() {
+        this.subPages.remove(this.subPages.size() - 1);
         return this;
     }
 
