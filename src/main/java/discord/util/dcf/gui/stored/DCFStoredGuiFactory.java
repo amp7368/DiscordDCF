@@ -5,35 +5,50 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
+import org.jetbrains.annotations.Nullable;
 
 public class DCFStoredGuiFactory<Gui extends IDCFStoredDormantGui<?>> {
 
+    protected final Map<Long, Gui> messages = new HashMap<>();
     private transient final Map<Long, DCFStoredGui<?>> cache = new HashMap<>();
-    private final Map<Long, Gui> messages = new HashMap<>();
+    private transient final DCF dcf;
 
     public DCFStoredGuiFactory(DCF dcf) {
+        this.dcf = dcf;
         dcf.listener().listenOnButtonInteraction(this::onButtonInteraction);
     }
 
     private void onButtonInteraction(ButtonInteractionEvent event) {
+        DCFStoredGui<?> gui = fetchGui(event.getMessageIdLong());
+        if (gui == null) return;
+        gui.onButtonInteraction(event);
+    }
+
+    @Nullable
+    public DCFStoredGui<?> fetchGui(long messageId) {
         DCFStoredGui<?> gui;
         synchronized (cache) {
-            gui = cache.get(event.getMessageIdLong());
+            gui = cache.get(messageId);
         }
-        if (gui != null) {
-            gui.onButtonInteraction(event);
-            return;
-        }
+        if (gui == null)
+            gui = loadDormant(messageId);
+        return gui;
+    }
+
+    @Nullable
+    private DCFStoredGui<?> loadDormant(long messageId) {
+        DCFStoredGui<?> gui;
         IDCFStoredDormantGui<?> dormant;
         synchronized (messages) {
-            dormant = messages.get(event.getMessageIdLong());
+            dormant = messages.get(messageId);
         }
-        if (dormant == null) return;
+        if (dormant == null) return null;
         gui = dormant.load();
+        gui.setDCF(this.dcf);
         synchronized (cache) {
             cache.put(gui.messageId, gui);
         }
-        gui.onButtonInteraction(event);
+        return gui;
     }
 
     public void addAll(Collection<? extends Gui> guis) {

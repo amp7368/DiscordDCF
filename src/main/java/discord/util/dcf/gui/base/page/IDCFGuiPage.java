@@ -1,5 +1,6 @@
 package discord.util.dcf.gui.base.page;
 
+import discord.util.dcf.gui.base.gui.DCFGui;
 import discord.util.dcf.gui.base.gui.IDCFGui;
 import discord.util.dcf.gui.util.interaction.IHasInteractionMap;
 import discord.util.dcf.util.IMessageBuilder;
@@ -32,6 +33,8 @@ public interface IDCFGuiPage<Parent extends IDCFGui> extends IMessageBuilder, IP
     }
 
     Parent getParent();
+
+    void setParent(DCFGui dcfGui);
 
     default int getPageNum() {
         return getParent().getPageNum();

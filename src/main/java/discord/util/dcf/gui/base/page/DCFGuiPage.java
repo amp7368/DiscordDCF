@@ -1,5 +1,6 @@
 package discord.util.dcf.gui.base.page;
 
+import discord.util.dcf.gui.base.gui.DCFGui;
 import discord.util.dcf.gui.base.gui.IDCFGui;
 import discord.util.dcf.gui.util.interaction.OnInteractionMap;
 import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
@@ -24,6 +25,12 @@ public abstract class DCFGuiPage<Parent extends IDCFGui> implements IDCFGuiPage<
 
     public final Parent getParent() {
         return this.parent;
+    }
+
+    @Override
+    public void setParent(DCFGui gui) {
+        @SuppressWarnings("unchecked") Parent parent = (Parent) gui;
+        this.parent = parent;
     }
 
     @Override
