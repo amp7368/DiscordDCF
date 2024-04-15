@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.EntitySelectInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.callbacks.IMessageEditCallback;
 import net.dv8tion.jda.api.utils.messages.MessageEditData;
@@ -17,10 +19,9 @@ public class DCFGui implements IDCFGui {
     protected final DCF dcf;
     protected final List<IDCFGuiPage<?>> pageMap = new ArrayList<>();
     protected final List<IDCFGuiPage<?>> subPages = new ArrayList<>();
-    private final GuiReplyFirstMessage createFirstMessage;
     protected InteractionHook hook;
     protected int page = 0;
-
+    private final GuiReplyFirstMessage createFirstMessage;
     private long lastUpdated = System.currentTimeMillis();
     private long messageId;
 
@@ -95,14 +96,17 @@ public class DCFGui implements IDCFGui {
         return this;
     }
 
+    @Override
     public void editMessage() {
         if (hookIsValid()) hook.editOriginal(getPage().makeEditMessage()).queue();
     }
 
+    @Override
     public void editMessage(MessageEditData data) {
         if (hookIsValid()) hook.editOriginal(data).queue();
     }
 
+    @Override
     public void editMessage(IMessageEditCallback callback) {
         if (hookIsValid()) callback.editMessage(getPage().makeEditMessage()).queue();
     }
@@ -111,8 +115,21 @@ public class DCFGui implements IDCFGui {
         return hook != null && !hook.isExpired();
     }
 
+    @Override
     public void onButtonClick(ButtonInteractionEvent event) {
         getPage().onButtonInteraction(event);
+        resetLastUpdatedTimer();
+    }
+
+    @Override
+    public void onSelectString(StringSelectInteractionEvent event) {
+        getPage().onSelectStringInteraction(event);
+        resetLastUpdatedTimer();
+    }
+
+    @Override
+    public void onSelectEntity(EntitySelectInteractionEvent event) {
+        getPage().onSelectEntityInteraction(event);
         resetLastUpdatedTimer();
     }
 

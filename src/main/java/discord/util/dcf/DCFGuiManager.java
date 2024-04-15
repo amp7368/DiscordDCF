@@ -4,7 +4,11 @@ import discord.util.dcf.gui.base.GuiEventHandler;
 import discord.util.dcf.util.TimeMillis;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.function.Consumer;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.EntitySelectInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
+import org.jetbrains.annotations.NotNull;
 
 public class DCFGuiManager {
 
@@ -43,13 +47,24 @@ public class DCFGuiManager {
         }
     }
 
-    public void onButtonInteraction(ButtonInteractionEvent event) {
-        GuiEventHandler gui;
-        synchronized (guis) {
-            gui = guis.get(event.getMessageIdLong());
-        }
-        if (gui != null && !gui.shouldRemove()) gui.onButtonClick(event);
-        trim();
+    public void onButtonInteraction(@NotNull ButtonInteractionEvent event) {
+        onEvent(event.getMessageIdLong(), gui -> gui.onButtonClick(event));
     }
 
+    public void onStringSelectInteraction(@NotNull StringSelectInteractionEvent event) {
+        onEvent(event.getMessageIdLong(), gui -> gui.onSelectString(event));
+    }
+
+    public void onEntitySelectInteraction(@NotNull EntitySelectInteractionEvent event) {
+        onEvent(event.getMessageIdLong(), gui -> gui.onSelectEntity(event));
+    }
+
+    private void onEvent(long messageId, Consumer<GuiEventHandler> callback) {
+        GuiEventHandler gui;
+        synchronized (guis) {
+            gui = guis.get(messageId);
+        }
+        if (gui != null && !gui.shouldRemove()) callback.accept(gui);
+        trim();
+    }
 }
