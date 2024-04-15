@@ -46,7 +46,7 @@ public abstract class DCFModalType<T extends DCFModal> {
 
     public Modal buildModal() {
         Builder modal = Modal.create(getId(), getTitle());
-        modal.addActionRows(getInputs().stream().map(ActionRow::of).toList());
+        modal.addComponents(getInputs().stream().map(ActionRow::of).toList());
         return modal.build();
     }
 

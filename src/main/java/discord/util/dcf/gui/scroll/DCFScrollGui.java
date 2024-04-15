@@ -16,6 +16,9 @@ public abstract class DCFScrollGui<Parent extends IDCFGui, Entry> extends DCFGui
 
     public DCFScrollGui(Parent parent) {
         super(parent);
+        registerButton(this.btnNext().getId(), event -> this.forward());
+        registerButton(this.btnPrev().getId(), event -> this.back());
+        registerButton(this.btnFirst().getId(), event -> this.entryPage = 0);
     }
 
     protected abstract Comparator<? super Entry> entriesComparator();
@@ -65,7 +68,8 @@ public abstract class DCFScrollGui<Parent extends IDCFGui, Entry> extends DCFGui
         if (this.entries.isEmpty()) return Collections.emptyList();
         int startIndex = this.entryPage * this.entriesPerPage();
         List<DCFEntry<Entry>> numberedEntries = new ArrayList<>(this.entriesPerPage());
-        int endIndex = Math.min(this.entries.size(), startIndex + this.entriesPerPage());
+        int endIndex = startIndex + this.entriesPerPage();
+        endIndex = Math.min(this.getEntriesSize(), endIndex);
         List<Entry> entriesThisPage = this.entries.subList(startIndex, endIndex);
         for (int i = 0, size = entriesThisPage.size(); i < size; i++) {
             Entry entry = entriesThisPage.get(i);
@@ -74,10 +78,18 @@ public abstract class DCFScrollGui<Parent extends IDCFGui, Entry> extends DCFGui
         return numberedEntries;
     }
 
+    protected final List<Entry> getEntriesCopy() {
+        return List.copyOf(this.entries);
+    }
+
+    protected final int getEntriesSize() {
+        return this.entries.size();
+    }
+
     @Override
     public Button btnNext() {
         if (entries == null) return super.btnNext();
-        boolean isDisabled = entryPage + 1 >= getMaxPage();
+        boolean isDisabled = entryPage >= getMaxPage();
         return super.btnNext().withDisabled(isDisabled);
     }
 
@@ -86,5 +98,12 @@ public abstract class DCFScrollGui<Parent extends IDCFGui, Entry> extends DCFGui
         if (entries == null) return super.btnPrev();
         boolean isDisabled = this.entryPage == 0;
         return super.btnPrev().withDisabled(isDisabled);
+    }
+
+    @Override
+    public Button btnFirst() {
+        if (entries == null) return super.btnFirst();
+        boolean isDisabled = this.entryPage == 0;
+        return super.btnFirst().withDisabled(isDisabled);
     }
 }

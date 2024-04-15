@@ -7,10 +7,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.Command.Subcommand;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
+import net.dv8tion.jda.api.requests.restaction.CommandListUpdateAction;
 import org.jetbrains.annotations.NotNull;
 
 public class DCFCommandManager {
@@ -47,9 +50,18 @@ public class DCFCommandManager {
     }
 
     public void updateCommands() {
+        updateCommands(Function.identity(), commands -> {});
+    }
+
+    public void updateCommands(Function<CommandListUpdateAction, CommandListUpdateAction> modify, Consumer<List<Command>> callback) {
         synchronized (this.nameToCommand) {
             List<SlashCommandData> dataList = baseCommands.stream().map(DCFSlashCommand::getFullData).toList();
-            dcf.jda().updateCommands().addCommands(dataList).queue(this::setCommands);
+            CommandListUpdateAction action = dcf.jda().updateCommands()
+                .addCommands(dataList);
+            modify.apply(action).queue((commands) -> {
+                this.setCommands(commands);
+                callback.accept(commands);
+            });
         }
     }
 

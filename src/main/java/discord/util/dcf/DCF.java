@@ -1,7 +1,6 @@
 package discord.util.dcf;
 
 import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 public class DCF {
 
