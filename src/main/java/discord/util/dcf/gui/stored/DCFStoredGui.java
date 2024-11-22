@@ -3,6 +3,7 @@ package discord.util.dcf.gui.stored;
 import discord.util.dcf.DCF;
 import discord.util.dcf.gui.base.GuiMakeFirstMessage;
 import discord.util.dcf.gui.base.GuiReplyFirstMessage;
+import discord.util.dcf.gui.base.edit_message.DCFEditMessage;
 import discord.util.dcf.gui.util.interaction.IHasInteractionMap;
 import discord.util.dcf.gui.util.interaction.OnInteractionMap;
 import java.util.function.Consumer;
@@ -14,10 +15,10 @@ import net.dv8tion.jda.api.utils.messages.MessageEditData;
 
 public abstract class DCFStoredGui<Data extends IDCFStoredDormantGui<?>> implements IHasInteractionMap {
 
+    private final OnInteractionMap onInteractionMap = new OnInteractionMap();
     protected long messageId;
     protected Data data;
     protected DCF dcf;
-    private final OnInteractionMap onInteractionMap = new OnInteractionMap();
 
     public DCFStoredGui(long messageId, Data data) {
         this.messageId = messageId;
@@ -33,8 +34,7 @@ public abstract class DCFStoredGui<Data extends IDCFStoredDormantGui<?>> impleme
         makeFirstMessage.create(makeMessage()).queue(hook -> {
             hook.retrieveOriginal().queue((original) -> {
                 this.messageId = original.getIdLong();
-                this.data.setId(messageId);
-                this.data.setChannelId(original.getChannel().getIdLong());
+                this.data.setMessage(original);
                 this.save();
             });
         });
@@ -43,8 +43,7 @@ public abstract class DCFStoredGui<Data extends IDCFStoredDormantGui<?>> impleme
     public void send(GuiMakeFirstMessage makeFirstMessage) {
         makeFirstMessage.create(makeMessage()).queue(message -> {
             this.messageId = message.getIdLong();
-            this.data.setId(messageId);
-            this.data.setChannelId(message.getChannel().getIdLong());
+            this.data.setMessage(message);
             this.save();
         });
     }
@@ -57,7 +56,7 @@ public abstract class DCFStoredGui<Data extends IDCFStoredDormantGui<?>> impleme
     }
 
     public void retrieveMessage(Consumer<Message> consumer) {
-        TextChannel channel = dcf.jda().getTextChannelById(this.data.getChannelId());
+        TextChannel channel = dcf.jda().getTextChannelById(getData().getChannelId());
         if (channel == null) {
             consumer.accept(null);
             return;
@@ -70,6 +69,10 @@ public abstract class DCFStoredGui<Data extends IDCFStoredDormantGui<?>> impleme
         event.editMessage(makeEditMessage()).queue();
     }
 
+    public void editMessage(DCFEditMessage edit) {
+        edit.editMessage(makeEditMessage());
+    }
+
     protected MessageEditData makeEditMessage() {
         return MessageEditData.fromCreateData(makeMessage());
     }
@@ -80,11 +83,20 @@ public abstract class DCFStoredGui<Data extends IDCFStoredDormantGui<?>> impleme
 
     public abstract void remove();
 
-    public Data serialize() {
+    public Data getData() {
         return this.data;
+    }
+
+    @Deprecated
+    public Data serialize() {
+        return this.getData();
     }
 
     public void setDCF(DCF dcf) {
         this.dcf = dcf;
+    }
+
+    public long getMessageId() {
+        return this.messageId;
     }
 }

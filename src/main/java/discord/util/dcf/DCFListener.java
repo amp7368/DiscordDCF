@@ -1,5 +1,7 @@
 package discord.util.dcf;
 
+import discord.util.dcf.gui.util.interaction.IHasInteractionMap;
+import discord.util.dcf.gui.util.interaction.OnInteractionListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -14,10 +16,12 @@ import org.jetbrains.annotations.NotNull;
 public class DCFListener extends ListenerAdapter {
 
     private final DCF dcf;
+    private final List<OnInteractionListener> listeners = new ArrayList<>();
     private final List<Consumer<ButtonInteractionEvent>> guis = new ArrayList<>();
 
     public DCFListener(DCF dcf) {
         this.dcf = dcf;
+        listeners.add(dcf.guis());
         dcf.jda().addEventListener(this);
     }
 
@@ -28,8 +32,7 @@ public class DCFListener extends ListenerAdapter {
 
     @Override
     public void onButtonInteraction(@NotNull ButtonInteractionEvent event) {
-        dcf.guis().onButtonInteraction(event);
-        guis.forEach(gui -> gui.accept(event));
+        listeners.forEach(l -> l.onButtonInteraction(event));
     }
 
     @Override
@@ -39,15 +42,25 @@ public class DCFListener extends ListenerAdapter {
 
     @Override
     public void onEntitySelectInteraction(@NotNull EntitySelectInteractionEvent event) {
-        dcf.guis().onEntitySelectInteraction(event);
+        listeners.forEach(l -> l.onSelectEntityInteraction(event));
     }
 
     @Override
     public void onStringSelectInteraction(@NotNull StringSelectInteractionEvent event) {
-        dcf.guis().onStringSelectInteraction(event);
+        listeners.forEach(l -> l.onSelectStringInteraction(event));
     }
 
     public void listenOnButtonInteraction(Consumer<ButtonInteractionEvent> onInteraction) {
-        this.guis.add(onInteraction);
+        OnInteractionListener listener = new OnInteractionListener() {
+            @Override
+            public void onButtonInteraction(ButtonInteractionEvent event) {
+                onInteraction.accept(event);
+            }
+        };
+        this.listeners.add(listener);
+    }
+
+    public void listen(IHasInteractionMap onInteraction) {
+        this.listeners.add(onInteraction);
     }
 }
