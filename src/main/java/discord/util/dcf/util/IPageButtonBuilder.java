@@ -24,6 +24,10 @@ public interface IPageButtonBuilder {
         return Button.primary("Last", "Last").withDisabled(!isEnabled);
     }
 
+    default Button btnReversed() {
+        return Button.secondary("reverse", "Reverse");
+    }
+
     int getPageNum();
 
     int getPageSize();

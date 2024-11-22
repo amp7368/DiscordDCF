@@ -4,14 +4,15 @@ public abstract class DCFStoredDormantGui<Gui extends DCFStoredGui<?>> implement
 
     public long messageId = -1;
     public long channelId = -1;
+    public long serverId = -1;
 
     @Override
-    public long getId() {
+    public long getMessageId() {
         return this.messageId;
     }
 
     @Override
-    public void setId(long messageId) {
+    public void setMessageId(long messageId) {
         this.messageId = messageId;
     }
 
@@ -23,5 +24,15 @@ public abstract class DCFStoredDormantGui<Gui extends DCFStoredGui<?>> implement
     @Override
     public void setChannelId(long channelId) {
         this.channelId = channelId;
+    }
+
+    @Override
+    public long getServerId() {
+        return serverId;
+    }
+
+    @Override
+    public void setServerId(long serverId) {
+        this.serverId = serverId;
     }
 }

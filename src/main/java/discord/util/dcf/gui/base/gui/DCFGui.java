@@ -2,33 +2,46 @@ package discord.util.dcf.gui.base.gui;
 
 import discord.util.dcf.DCF;
 import discord.util.dcf.gui.base.GuiReplyFirstMessage;
+import discord.util.dcf.gui.base.edit_message.DCFEditMessage;
+import discord.util.dcf.gui.base.edit_message.DCFEditMessageReply;
 import discord.util.dcf.gui.base.page.IDCFGuiPage;
 import discord.util.dcf.util.TimeMillis;
+import discord.util.dcf.util.message.DiscordMessageId;
+import discord.util.dcf.util.message.DiscordMessageIdData;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.EntitySelectInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
-import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.callbacks.IMessageEditCallback;
 import net.dv8tion.jda.api.utils.messages.MessageEditData;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class DCFGui implements IDCFGui {
 
     protected final DCF dcf;
     protected final List<IDCFGuiPage<?>> pageMap = new ArrayList<>();
     protected final List<IDCFGuiPage<?>> subPages = new ArrayList<>();
-    protected InteractionHook hook;
+    private final DCFEditMessage editMessage;
+    private final DiscordMessageIdData message = new DiscordMessageIdData();
     protected int page = 0;
-    private final GuiReplyFirstMessage createFirstMessage;
-    private long lastUpdated = System.currentTimeMillis();
-    private long messageId;
+    private Instant lastUpdated = Instant.now();
+    @Nullable
+    private Duration timeToOld = null;
 
+    public DCFGui(DCF dcf, DCFEditMessage editMessage) {
+        this.dcf = dcf;
+        this.editMessage = editMessage;
+    }
 
     public DCFGui(DCF dcf, GuiReplyFirstMessage createFirstMessage) {
-        this.dcf = dcf;
-        this.createFirstMessage = createFirstMessage;
+        this(dcf, new DCFEditMessageReply(createFirstMessage));
     }
 
     public IDCFGuiPage<?> getPage() {
@@ -65,13 +78,17 @@ public class DCFGui implements IDCFGui {
     }
 
     public void send() {
-        createFirstMessage.create(getPage().makeMessage()).queue((hook) -> {
-            this.hook = hook;
-            this.hook.retrieveOriginal().queue((original) -> {
-                this.messageId = original.getIdLong();
-                this.dcf.guis().addGui(this);
-            });
-        });
+        send(null, null);
+    }
+
+    public void send(@Nullable Consumer<Message> onSuccess, @Nullable Consumer<? super Throwable> onFailure) {
+        this.editMessage.send(getPage().makeMessage(), (original) -> {
+            this.message.setMessage(original);
+            if (onSuccess != null)
+                onSuccess.accept(original);
+            this.dcf.guis().addGui(this);
+            resetLastUpdatedTimer();
+        }, onFailure);
     }
 
     public DCFGui addPage(IDCFGuiPage<?>... pageGuis) {
@@ -98,21 +115,21 @@ public class DCFGui implements IDCFGui {
 
     @Override
     public void editMessage() {
-        if (hookIsValid()) hook.editOriginal(getPage().makeEditMessage()).queue();
+        editMessage.editMessage(getPage().makeEditMessage());
     }
 
     @Override
     public void editMessage(MessageEditData data) {
-        if (hookIsValid()) hook.editOriginal(data).queue();
+        editMessage.editMessage(data);
     }
 
     @Override
     public void editMessage(IMessageEditCallback callback) {
-        if (hookIsValid()) callback.editMessage(getPage().makeEditMessage()).queue();
+        callback.editMessage(getPage().makeEditMessage()).queue();
     }
 
-    private boolean hookIsValid() {
-        return hook != null && !hook.isExpired();
+    public void editMessage(DCFEditMessage callback) {
+        callback.editMessage(getPage().makeEditMessage());
     }
 
     @Override
@@ -135,24 +152,50 @@ public class DCFGui implements IDCFGui {
 
 
     public void resetLastUpdatedTimer() {
-        this.lastUpdated = System.currentTimeMillis();
+        this.lastUpdated = Instant.now();
+        Instant nextUpdate = this.lastUpdated.plus(getTimeToOld());
+        this.dcf.guis().submitScheduleTrimAt(this, nextUpdate);
     }
 
+    @NotNull
+    public Duration getTimeToOld() {
+        if (timeToOld == null) return Duration.ofMillis(getMillisToOld());
+        return timeToOld;
+    }
+
+    /**
+     * @param timeToOld the duartion until this GUI becomes "old"
+     * @return this
+     * @apiNote passing null resets timeToOld to default
+     */
+    public DCFGui setTimeToOld(@Nullable Duration timeToOld) {
+        this.timeToOld = timeToOld;
+        return this;
+    }
+
+    @Deprecated
     public long getMillisToOld() {
         return TimeMillis.MINUTE_15;
     }
 
-
     public boolean shouldRemove() {
-        return System.currentTimeMillis() - this.lastUpdated > getMillisToOld();
+        Instant canUpdateAt = lastUpdated.plus(getTimeToOld());
+        return !canUpdateAt.isAfter(Instant.now());
     }
 
     public void remove() {
         getPage().remove();
     }
 
+    public DCF getDCF() {
+        return dcf;
+    }
 
-    public long getId() {
-        return this.messageId;
+    public DiscordMessageId getMessage() {
+        return this.message.withDCF(dcf);
+    }
+
+    public long getMessageId() {
+        return this.message.getMessageId();
     }
 }

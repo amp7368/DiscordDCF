@@ -12,7 +12,17 @@ public interface GuiEventHandler {
 
     void onSelectString(StringSelectInteractionEvent event);
 
-    long getId();
+    /**
+     * Message id is a snowflake and therefore unique
+     *
+     * @return The id of the message behind the GUI
+     */
+    long getMessageId();
+
+    @Deprecated
+    default long getId() {
+        return getMessageId();
+    }
 
     boolean shouldRemove();
 

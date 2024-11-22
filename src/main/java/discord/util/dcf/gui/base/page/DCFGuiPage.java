@@ -3,7 +3,16 @@ package discord.util.dcf.gui.base.page;
 import discord.util.dcf.gui.base.gui.DCFGui;
 import discord.util.dcf.gui.base.gui.IDCFGui;
 import discord.util.dcf.gui.util.interaction.OnInteractionMap;
-import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
+import java.util.ArrayList;
+import java.util.List;
+import net.dv8tion.jda.api.interactions.components.ActionComponent;
+import net.dv8tion.jda.api.interactions.components.ActionRow;
+import net.dv8tion.jda.api.interactions.components.LayoutComponent;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
+import net.dv8tion.jda.api.utils.messages.MessageCreateData;
+import net.dv8tion.jda.api.utils.messages.MessageEditData;
 
 public abstract class DCFGuiPage<Parent extends IDCFGui> implements IDCFGuiPage<Parent> {
 
@@ -35,7 +44,26 @@ public abstract class DCFGuiPage<Parent extends IDCFGui> implements IDCFGuiPage<
 
     @Override
     public void remove() {
-        this.editMessage(new MessageEditBuilder().setComponents().build());
+        MessageCreateBuilder createBuilder = MessageCreateBuilder.from(this.makeMessage());
+        List<LayoutComponent> components = createBuilder.getComponents()
+            .stream()
+            .map(this::disableButtons)
+            .toList();
+
+        MessageCreateData msg = createBuilder.setComponents(components).build();
+        this.editMessage(MessageEditData.fromCreateData(msg));
     }
 
+    private LayoutComponent disableButtons(LayoutComponent layout) {
+        if (!(layout instanceof ActionRow row)) return layout;
+
+        List<ActionComponent> buttons = new ArrayList<>();
+        for (ActionComponent component : row.getActionComponents()) {
+            boolean enabled = component instanceof Button btn &&
+                btn.getStyle() == ButtonStyle.LINK;
+
+            buttons.add(component.withDisabled(!enabled));
+        }
+        return ActionRow.of(buttons);
+    }
 }
